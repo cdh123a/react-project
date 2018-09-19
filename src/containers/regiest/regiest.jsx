@@ -1,12 +1,15 @@
 import React from 'react';
 /*引入蚂蚁金服的组件*/
-import {NavBar , List ,InputItem ,WhiteSpace ,WingBlank ,Radio ,Button} from 'antd-mobile';
+import {NavBar , List ,InputItem ,WhiteSpace ,WingBlank ,Radio ,Button } from 'antd-mobile';
+import {connect} from 'react-redux';
+import {Redirect} from 'react-router-dom';
 
-
+import {regiest} from "../../redux/actions";
 import Logo from '../../components/logo';
 /*语法规定  这种定义的const let 都需要放在import引入的后面 不然会报错*/
 const ListItem = List.Item ;
-export default class Regiest extends React.Component{
+
+ class Regiest extends React.Component{
   /*查看api文档 看一下状态里面需要设置什么*/
   state = {
     username : '',
@@ -30,8 +33,20 @@ export default class Regiest extends React.Component{
     this.props.history.replace('/login')
   }
 
+  //注册
+  regiester = () => {
+    //发送请求
+    this.props.regiest(this.state);
+  }
+
   render () {
     const {type} = this.state ;
+    //先重定向
+    const {redirectTo ,msg} = this.props;
+    //如果redirectTo存在  说明已经返回了响应 跳转到主页面
+    if(redirectTo) {
+      return <Redirect to={redirectTo}/>
+    }
     return (
       <div>
        <NavBar >Boss 直聘</NavBar>
@@ -40,6 +55,7 @@ export default class Regiest extends React.Component{
         <WingBlank>
           <List>
             <WhiteSpace/>
+            { msg ? <p style={{textAlign:'center',color:'red',fontSize:'14px'}}>{msg}</p> : null }
             <InputItem placeholder='请输入用户名' onChange={ val => this.changeHandle('username',val)}>用户名：</InputItem>
             <WhiteSpace/>
             <InputItem type='password' placeholder='请输入密码' onChange={ val => this.changeHandle('password',val)}>密码：</InputItem>
@@ -52,16 +68,23 @@ export default class Regiest extends React.Component{
               <Radio checked={type ==='laoban'} onChange={() => this.changeHandle('type','laoban')}>老板</Radio>
             </ListItem>
             <WhiteSpace/>
-            <Button type='primary'>注册</Button>
+            <Button type='primary' onClick={this.regiester}>注册</Button>
             <WhiteSpace/>
             <Button onClick={this.goLogin}>已有账号</Button>
           </List>
         </WingBlank>
-
       </div>
       )
   }
 }
+
+//将connect映射到UI组件暴露出去  暴露出去的是容器组件
+export default connect(
+  /*需要将msg返回 然后渲染到页面  注册成功要跳转到主页面  要重定向的路由*/
+  state => ({ msg : state.user.msg ,redirectTo : state.user.redirectTo}) ,
+  {regiest}
+)(Regiest)
+
 
 /*Radio上的checked 初始时type是'dashen'，一开始就是true 点击的时候无法触发onChange
  * 点击'老板'时 ，type能发生改变 点击时将type转变为'laoban' ，会触发onChange事件，此时又改变了状态 */

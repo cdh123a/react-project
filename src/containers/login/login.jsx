@@ -1,9 +1,11 @@
 import React from 'react';
 import {NavBar , List ,InputItem ,WhiteSpace ,WingBlank ,Button} from 'antd-mobile';
+import {connect} from 'react-redux'
+import {Redirect} from 'react-router-dom'
 
-
+import {login} from '../../redux/actions'
 import Logo from '../../components/logo';
-export default class Login extends React.Component{
+class Login extends React.Component{
   /*查看api文档 看一下状态里面需要设置什么*/
   state = {
     username : '',
@@ -20,12 +22,21 @@ export default class Login extends React.Component{
       [type]:val
     })
   }
+  /*注册界面 回向数据端发送请求  异步代码都会放在action模块 先定义一个请求的函数*/
 
   goLogin = () => {
     /*因为都有按钮回退 因此不需要使用push 不然回退会在登录和注册之间切换*/
     this.props.history.replace('/regiest')
   }
+
+  login = () => {
+    this.props.login(this.state);
+  }
   render () {
+    const {redirectTo ,msg} = this.props ;
+    if(redirectTo) {
+      return <Redirect to={redirectTo}/>
+    }
     return (
       <div>
         <NavBar >Boss 直聘</NavBar>
@@ -34,13 +45,14 @@ export default class Login extends React.Component{
         <WingBlank>
           <List>
             <WhiteSpace/>
+            { msg ? <p style={{textAlign:'center',color:'red',fontSize:'14px'}}>{msg}</p> : null }
             <InputItem placeholder='请输入用户名' onChange={ val => this.changeHandle('username',val)}>用户名：</InputItem>
             <WhiteSpace/>
             <InputItem type='password' placeholder='请输入密码' onChange={ val => this.changeHandle('password',val)}>密码：</InputItem>
             <WhiteSpace/>
 
             <WhiteSpace/>
-            <Button type='primary'>登录</Button>
+            <Button type='primary' onClick={this.login}>登录</Button>
             <WhiteSpace/>
             <Button onClick={this.goLogin}>没有账号</Button>
           </List>
@@ -50,3 +62,8 @@ export default class Login extends React.Component{
     )
   }
 }
+
+export default  connect(
+  state => ({ msg :state.user.msg ,redirectTo : state.user.redirectTo}),
+  {login}
+)(Login)
